@@ -1,106 +1,104 @@
-local is_empty = function(table)
-	for _,_ in pairs(table) do
-		return false
-	end
-
-	return true
-end
-
 local RR = {
-	new = function(quantum, proclist)
-		if proclist == nil then proclist = {} end
-		
-		return {
-			quantum = quantum,
-			proclist = proclist,
-			proclist_len = #proclist,
-			curr_proc = 0,
-			curr_quant = 0,
+    new = function(quantum, proclist)
+        if proclist == nil then proclist = {} end
 
-			add_process = function(self, process)
-				table.insert(self.proclist, process)
-				self.proclist_len = self.proclist_len + 1
-			end,
+        return {
+            quantum = quantum,
+            proclist_len = #proclist,
+            proclist = proclist,
+            curr_proc = 1,
+            curr_quant = 0,
 
-			remove_process = function(self)
-				table.remove(self.proclist)
-				self.proclist_len = self.proclist_len - 1
-				self.curr_quant = 0
-				if self.proclist_len ~= 0 then
-					self.curr_proc = self.curr_proc % self.proclist_len
-				end
-			end,
+            add_process = function(self, process)
+                table.insert(self.proclist, process)
+                self.proclist_len = self.proclist_len + 1
+            end,
 
-			get_process = function(self)
-				if self.curr_quant > self.quantum
-					self.curr_proc = (self.curr_proc + 1) % self.proclist_len
-					self.curr.curr_quant = 1
-				else
-					self.curr_quant = self.curr_quant + 1
-				end
+            remove_process = function(self)
+                table.remove(self.proclist, curr_proc)
+                self.proclist_len = self.proclist_len - 1
+                self.curr_quant = 0
+                if self.proclist_len ~= 0 then
+                    self.curr_proc = self.curr_proc % self.proclist_len + 1
+                end
+            end,
 
-				return self.proclist[self.curr_proc]
-			end,
+            get_process = function(self)
+                if self.curr_quant > self.quantum then
+                    self.curr_proc = (self.curr_proc + 1) % self.proclist_len + 1
+                    self.curr_quant = 1
+                else
+                    self.curr_quant = self.curr_quant + 1
+                end
+                return self.proclist[self.curr_proc]
+            end,
 
-			print = function (self)
-				local res = ''
-				for _, i in pairs(self.proclist) do
-					res = res + i:print()
-				end
+            print = function (self)
+                local res = ''
+                for _, i in pairs(self.proclist) do
+                    res = res .. '\n' .. i:print()
+                end
 
-				return res
-			end
+                return res
+            end
 
-		}
-	end
+        }
+    end
 }
 
 local SRTF = {
-	new = function(quantum, proclist)
-		if proclist == nil then proclist = {} end
-		
-		return {
-			quantum = quantum,
-			proclist = proclist,
-			proclist_len = #proclist,
-			curr_proc = 0,
-			curr_quant = 0,
-			fastest_id = nil
+    new = function(proclist)
+        if proclist == nil then proclist = {} end
+        
+        return {
+            proclist = proclist,
+            proclist_len = #proclist,
+            fastest_id = 1,
+            fastest_time = proclist[1].time,
 
-			add_process = function(self, process)
-				table.insert(self.proclist, process)
-				self.proclist_len = self.proclist_len + 1
-			end,
+            add_process = function(self, process)
+                table.insert(self.proclist, process)
+                self.proclist_len = self.proclist_len + 1
+                if(self.fastest_time > process.time) then
+                    self.fastest_id = self.proclist_len
+                    self.fastest_time = process.time
+                end
+            end,
 
-			remove_process = function(self)
-				table.remove(self.proclist)
-				self.proclist_len = self.proclist_len - 1
-				self.curr_quant = 0
-				if self.proclist_len ~= 0 then
-					self.curr_proc = self.curr_proc % self.proclist_len
-				end
-			end,
+            remove_process = function(self)
+                table.remove(self.proclist, fastest_id)
+                self.proclist_len = #self.proclist
+                if self.proclist_len == 0 then return end
 
-			get_process = function(self)
-				if self.curr_quant > self.quantum
-					self.curr_proc = (self.curr_proc + 1) % self.proclist_len
-					self.curr.curr_quant = 1
-				else
-					self.curr_quant = self.curr_quant + 1
-				end
+                local minimum = self.proclist[1].time
 
-				return self.proclist[self.curr_proc]
-			end,
+                for _, process in pairs(self.proclist) do
+                    if process.time < minimum and process.time > 0 then
+                        print(process.id,process.time)
+                        self.fastest_time = process.time
+                        self.fastest_id = process.id
+                    end
+                end
+            end,
 
-			print = function (self)
-				local res = ''
-				for _, i in pairs(self.proclist) do
-					res = res + i:print()
-				end
+            get_process = function(self)
+                return self.proclist[self.fastest_id]
+            end,
 
-				return res
-			end
+            print = function (self)
+                local res = ''
+                for _, i in pairs(self.proclist) do
+                    res = res .. '\n' .. i:print()
+                end
 
-		}
-	end
+                return res
+            end
+
+        }
+    end
+}
+
+return {
+    RR = RR,
+    SRTF = SRTF
 }

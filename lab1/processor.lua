@@ -1,18 +1,18 @@
 local Process = {
     new = function(id, time) 
-        self = {
-            id = id,
-            time = time
-        }
-
         return { 
+            id = id,
+            time = time,
+
             run = function(self)
                 self.time = self.time - 1;
-                if self.time == 0 then return true else return false end
+                return self.time <= 0
             end,
+
             left = function(self)
                 return self
             end,
+
             print = function (self)
                 return 'id - ' .. self.id .. ' time - ' .. self.time .. '\n'
             end
@@ -20,23 +20,28 @@ local Process = {
     end
 }
 
-Generator = {
+return {
     new = function(min, max)
-        self = {
-            min = min,
-            max = max,
-            last_id = 1
-        }
         math.randomseed(os.time())
 
         return {
-            generate = function()
-                self.last_id = self.last_id + 1
+            min = min,
+            max = max,
+            last_id = 1,
 
-                return Process.new(self.last_id, math.random(self.min, self.max))
+            generate = function(self, number)
+                if number == nil then number = 1 end
+
+
+                local result = {}
+
+                for i=1,number do
+                    table.insert(result, Process.new(self.last_id, math.random(self.min, self.max)))
+                    self.last_id = self.last_id + 1
+                end
+
+                return result
             end
         }
     end 
 }
-
-return Generator
