@@ -56,11 +56,11 @@ local Dispatch = {
 
                 local file = io.open(self.log_file, 'w')
 
-                while self.bg.proclist_len ~= 0 and self.int.proclist_len ~= 0 do
-                    if self.mode then
+                while self.bg.proclist_len ~= 0 or self.int.proclist_len ~= 0 do
+                    if self.mode and self.int.proclist_len ~= 0 then
                         self.interactive(self, file)
                         self.mode = not self.mode
-                    else 
+                    elseif self.bg.proclist_len ~= 0 then
                         self.background(self, file)
                         self.mode = not self.mode
                     end

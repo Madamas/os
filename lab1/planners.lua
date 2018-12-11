@@ -15,7 +15,7 @@ local RR = {
             end,
 
             remove_process = function(self)
-                table.remove(self.proclist, curr_proc)
+                table.remove(self.proclist, self.curr_proc)
                 self.proclist_len = self.proclist_len - 1
                 self.curr_quant = 0
                 if self.proclist_len ~= 0 then
@@ -66,17 +66,17 @@ local SRTF = {
             end,
 
             remove_process = function(self)
-                table.remove(self.proclist, fastest_id)
+                table.remove(self.proclist, self.fastest_id)
                 self.proclist_len = #self.proclist
                 if self.proclist_len == 0 then return end
 
                 local minimum = self.proclist[1].time
+                self.fastest_id = 1
 
-                for _, process in pairs(self.proclist) do
+                for id, process in pairs(self.proclist) do
                     if process.time < minimum and process.time > 0 then
-                        print(process.id,process.time)
                         self.fastest_time = process.time
-                        self.fastest_id = process.id
+                        self.fastest_id = id
                     end
                 end
             end,
