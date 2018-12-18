@@ -72,8 +72,8 @@ local Dispatch = {
     end
 }
 
-gen = generator.new(3, 20)
-interact = RR.new(2, gen:generate(6))
-background = SRTF.new(gen:generate(4))
+gen = generator.new(3, 5)
+interact = RR.new(2, gen:generate(4))
+background = SRTF.new(gen:generate(2))
 disp = Dispatch.new(10, interact, background, 'log.log')
 disp:run()
