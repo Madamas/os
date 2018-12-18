@@ -8,18 +8,18 @@ local File = {
             name = name,
             size = size,
             date_created = ts,
-            date_modified = ts,
+            -- date_modified = ts,
 
-            update_file = function(self, size)
-                self.size = size
-                self.date_modified = os.time()
-            end,
+            -- update_file = function(self, size)
+            --     self.size = size
+            --     self.date_modified = os.time()
+            -- end,
 
             print = function (self)
                 print('\nFile name',self.name)
                 print('Initial cluster address',self.start)
                 print('File size',self.size)
-                print(os.date('Created at: %c'))
+                print(os.date('Created at: %c', self.date_created))
             end
         }
     end
