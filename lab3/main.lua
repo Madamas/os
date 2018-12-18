@@ -6,6 +6,10 @@ local Process = {
             size = math.random(50, 100),
             read = function (self, mem, addr)
                 addr = tonumber(addr)
+    
+                if(addr == nil) then
+                    return -1
+                end
 
                 if(addr > self.size - 1) then
                     return -1
@@ -61,6 +65,17 @@ local Memory = {
 
         return {
             seglist = seglist,
+
+            count_access = function (self, proc)
+                self.seglist[proc.curr_seg].last_use = 0
+
+                for _,v in pairs(self.seglist) do
+                    if(v.id ~= proc.curr_seg) then
+                        v.last_use = v.last_use + 1
+                    end
+                end
+            end,
+
             unload = function (self, segment)
                 self.seglist[segment].pid = 0
                 self.seglist[segment].last_use = 0
@@ -72,30 +87,40 @@ local Memory = {
                     return
                 end
 
-                segfree = {}
+                local segfree = {}
+                local allowed = {}
+
                 for _,v in pairs(self.seglist) do
                     if(v.pid == 0) then
                         table.insert(segfree, v.id)
                     end
                 end
 
-                if(#segfree == 0) then
-                    local last_use = self.seglist[1]
+                for _,v in pairs(segfree) do
+                    local segment = self.seglist[v]
+                    if(segment.size >= size) then
+                        table.insert(allowed, v)
+                    end
+                end
+
+                if(#allowed == 0) then
+                    local last_use = self.seglist[1].last_use
                     local last_id = 1
-                    local allowed = {}
+                    local size_suited = {}
+
                     for _,v in pairs(self.seglist) do
                         if(v.size >= size) then
-                            table.insert(allowed, v.id)
+                            table.insert(size_suited, v.id)
                         end
                     end     
 
-                    if(#allowed == 0) then
+                    if(#size_suited == 0) then
                         print('There is no memory for selected process')
                         return -1
                     end         
 
                     for _,v in pairs(self.seglist) do
-                        if(v.last_use < last_use) then
+                        if(v.last_use > last_use) then
                             last_id = v.id
                         end
                     end
@@ -108,20 +133,6 @@ local Memory = {
 
                     return
                 else
-                    local allowed = {}
-                    for k,v in pairs(segfree) do
-                        local segment = self.seglist[v]
-                        if(segment.size >= size) then
-                            table.insert(allowed, segment.id)
-                        end
-                    end
-
-
-                    if(#allowed == 0) then
-                        print('There is no memory for selected process')
-                        return -1
-                    end
-
                     proc.curr_seg = allowed[1]
                     self.seglist[allowed[1]].pid = pid
                     self.seglist[allowed[1]].last_use = 0
@@ -137,7 +148,8 @@ local Memory = {
                     print('Segment ', i)
                     print('Size', seg.size)
                     print('Address ', seg.addr .. '......' .. (seg.addr + seg.size - 1))
-                    print('Process ', seg.pid, '\n')
+                    print('Process ', seg.pid)
+                    print('Last access to segment by process', seg.last_use, 'call(s) ago\n')
                 end
                 print('----------------------------------------------------------\n')
             end
@@ -203,17 +215,19 @@ repeat
             print_commands()
         end
 
-        if(pid > #workers) then
-            print('Pid should be less than amount of workers',#workers)
+        if(pid < 1 or pid > #workers) then
+            print('Pid should be less than amount of workers (' .. #workers .. ') and be bigger than 0')
         elseif(array[1] == 'upload') then
             local proc = workers[pid]
             mem:upload(proc, proc.size, pid)
             mem:print()
+            mem:count_access(proc)
         elseif(array[1] == 'unload') then
             local proc = workers[pid]
             mem:unload(proc.curr_seg)
             proc.curr_seg = 0
             mem:print()
+            mem:count_access(proc)
         elseif(array[1] == 'show') then
             workers[pid]:print()
         elseif(array[1] == 'read') then
@@ -230,6 +244,7 @@ repeat
                 goto continue
             else
                 phys = proc
+                mem:count_access(proc)
                 print('Virtual memory address', address)
                 print('Physical memory address', addr, '\n')
             end
