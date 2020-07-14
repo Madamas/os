@@ -67,7 +67,9 @@ local Memory = {
             seglist = seglist,
 
             count_access = function (self, proc)
-                self.seglist[proc.curr_seg].last_use = 0
+                if(proc.curr_seg ~= 0) then
+                    self.seglist[proc.curr_seg].last_use = 0
+                end
 
                 for _,v in pairs(self.seglist) do
                     if(v.id ~= proc.curr_seg) then
